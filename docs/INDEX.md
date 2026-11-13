@@ -145,6 +145,7 @@
 
 ## PR 报告存档
 
+- [macOS 音乐联动（2026-11-08）](PR-REPORT-MAC-MUSIC-2026-11-08.md)：歌词 / 切歌暂停 / 自动唱歌 / 「打开〈播放器〉给主人放歌」四条链路补 macOS 实现——读系统「正在播放」经 `/usr/bin/osascript` 常驻 JXA 助手（15.4 起 MediaRemote 只回应 `com.apple.*` 进程）、命令走 `MRMediaRemoteSendCommand`、唱歌以「正在播放」为准（mac 无峰值表）、`.app` 定位与 `open` 启动；Windows 路径不变。**未在真 Mac 上验收**，验收命令（`scripts/probe_mac_now_playing.py`）与未验证项见报告 §五/§七。改 `pet/music/mac_media.py`、`now_playing` 的 darwin 分支、mac 唱歌门或 `players` 的 `.app` 定位，或排查「Mac 上没歌词 / 不唱 / 切歌没反应」时必读。
 - [AstrBot 联动自动采用检测目录（2026-11-11）](PR-REPORT-ASTRBOT-AUTO-DETECT-2026-11-11.md)：已保存目录优先、检测成功跳过目录选择、未找到才手选；含 macOS Desktop 真实目录及回归证据。排查开启联动仍要求手选目录时必读。
 - [Agent 联动接入 AstrBot（2026-11-06）](PR-REPORT-ASTRBOT-AGENT-LINK-2026-11-06.md)：第五个内置联动通道——随包 AstrBot 插件（`integrations/astrbot-pet-bridge/`）一键装进 `<data>/plugins/`，事件写在 AstrBot data 目录（Docker 挂载友好）；含真实 AstrBot 4.29.4 + WebChat 实机整链记录。维护 AstrBot 联动、排查「AstrBot 回复完了桌宠还在忙」时必读；目录选择行为另见 [自动检测修正](PR-REPORT-ASTRBOT-AUTO-DETECT-2026-11-11.md)。**先例**：AstrBot 流式回复不触发 `after_message_sent`，回合收尾必须以 `on_llm_response` 为准；流式 + LLM 报错没有任何收尾钩子，靠插件 180s 静默回收。
 - [跨屏过缝通行与落点吸附（2026-10-22）](PR-REPORT-CROSS-SCREEN-CORRIDOR-2026-10-22.md)：跨屏移动语义从 band 收窄改为「通行域=并集（含空洞）、静止域=各屏、四处收口吸附」，含侧墙低速截止、两轮 k3 盲审记录与先红后绿证据；改跨屏拖拽/抛掷物理、写 `_clamp_rects` 多矩形域、动 `snap_to_nearest_screen` 或排查「宠物停在看不见的地方」时必读。**先例**：① 语义改动要逐个收口点查吸附（落地/原地放下/落岛/弹弓取消，漏一个就是把宠钉死在空洞）；② `__init__` 里 set_pos 先于字段初始化，钳制条件必须 getattr 兜底；③ 覆盖判定用并集（QRegion）而非中心点，否则半身悬空漏判。
