@@ -125,7 +125,9 @@ def test_load_grouped_is_four_groups_and_newest_first(tmp_path):
             NOW + timedelta(minutes=4),
         ]
     )
-    mem = ChatMemory(tmp_path / "memory.json", clock=lambda: next(ticks))
+    # 五次写入各取一拍；之后的读取也会问时钟（话题过期按实例时钟判），停在最后一拍。
+    last = NOW + timedelta(minutes=4)
+    mem = ChatMemory(tmp_path / "memory.json", clock=lambda: next(ticks, last))
     mem.add("旧事实", layer="fact")
     mem.add("新事实", layer="fact")
     mem.add("偏好", layer="user")

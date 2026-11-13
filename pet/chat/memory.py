@@ -631,7 +631,8 @@ class ChatMemory:
         （``note_recalled`` 去抖窗口内的 ``last_hit_at``）在副本上先行生效。
         """
         entries = self._read_entries_strict()
-        moment = datetime.now().astimezone()
+        # 话题过期按实例自己的时钟判，与写入 / 归档同一口径（默认时钟仍是系统时间）。
+        moment = self._clock()
         cached = _cached_hits(self.path)
         loaded: list[dict[str, Any]] = []
         for entry in entries or []:

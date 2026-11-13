@@ -214,8 +214,9 @@ def test_statutory_holiday_name_reports_free_days_only():
     assert statutory_holiday_name(date(2026, 2, 16)) == "春节"
     # 调休补班的周六（2026-10-10）是上班日，不属于放假日
     assert statutory_holiday_name(date(2026, 10, 10)) is None
-    # 内嵌安排表之外（2026-10-11 起）降级为 None = 「未知」，不是「确认上班」
-    assert statutory_holiday_name(date(2027, 1, 1)) is None
+    # 内嵌安排表之外降级为 None = 「未知」，不是「确认上班」。用安排表开始之前的日期：
+    # 表尾会随依赖更新往后延（2027 年的数据已经进表），表头不会变。
+    assert statutory_holiday_name(date(1990, 1, 5)) is None
 
 
 def test_statutory_holidays_are_idle_all_day():
@@ -276,16 +277,21 @@ def test_format_switch_time_same_iso_week_uses_bare_weekday():
 
 
 def test_pricing_degrades_without_holiday_calendar_data():
-    """2027 起 HolidayUtil 无内嵌数据：不抛异常，退回星期规则。"""
-    # 2027-01-01 是周五，表外日期按工作日高峰判
-    assert balance.deepseek_pricing_tier(_bj(10, day=1, month=1, year=2027)) == "peak"
-    assert balance.deepseek_pricing_tier(_bj(13, day=1, month=1, year=2027)) == "idle"
+    """安排表之外的日期没有内嵌数据：不抛异常，退回星期规则。
+
+    用安排表开始之前的日期（1990-01-05，周五）：表尾会随依赖更新往后延，原先用的
+    2027-01-01 已经进表、被判成元旦假日。
+    """
+    assert date(1990, 1, 5).weekday() == 4
+    # 表外的周五按工作日高峰判
+    assert balance.deepseek_pricing_tier(_bj(10, day=5, month=1, year=1990)) == "peak"
+    assert balance.deepseek_pricing_tier(_bj(13, day=5, month=1, year=1990)) == "idle"
     # 周末规则与表无关
-    assert balance.deepseek_pricing_tier(_bj(10, day=2, month=1, year=2027)) == "idle"
-    # 切换扫描同样可用（不因表耗尽而抛错）
-    tier, when = balance._next_pricing_switch(_bj(10, day=1, month=1, year=2027))
+    assert balance.deepseek_pricing_tier(_bj(10, day=6, month=1, year=1990)) == "idle"
+    # 切换扫描同样可用（不因表外而抛错）
+    tier, when = balance._next_pricing_switch(_bj(10, day=5, month=1, year=1990))
     assert tier == "idle"
-    assert when.date() == date(2027, 1, 1)
+    assert when.date() == date(1990, 1, 5)
 
 
 def test_chat_session_title_roundtrip():
